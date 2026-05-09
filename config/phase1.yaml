@@ -1,0 +1,63 @@
+# Kalshi BTC 15-Minute Bot — Phase 1 Configuration
+# All values agreed in G/O alignment documents (2026-05-06)
+# DO NOT modify without explicit approval. Phase 1 scope is locked.
+
+phase: 1
+bot_version: "1.0.0-phase1"
+
+execution:
+  passive_only: true
+  allow_ioc: false
+  min_price_cents: 1
+  max_price_cents: 99
+  dry_run: true  # Phase 1 never live trades
+
+probability:
+  shrinkage_factor: 0.70
+  use_calibration: false
+
+latency:
+  symmetric_decay: true
+  lambda_prob: 1.0
+  lambda_fill: 0.10
+  tau_floor_seconds: 60
+  max_signal_age_seconds: 5
+  max_book_age_seconds: 2
+
+fill_model:
+  type: simple_static
+  use_spread_velocity: false
+
+ev:
+  min_ev_submitted_cents: 1.0
+  adverse_selection_penalty_mode: spread_fraction
+  adverse_selection_fraction: 0.25
+  adverse_selection_min_cents: 1.0
+  fee_buffer_cents: 0.5
+  slippage_buffer_cents: 0.5
+
+clustering:
+  max_trades_per_direction_per_5min: 1
+  max_open_positions_same_side: 3
+  max_total_open_positions: 5
+  min_strike_separation_pct: 1.0
+  max_notional_per_side_cents: 2500
+  max_total_open_notional_cents: 5000
+
+guards:
+  require_spread_ok: true
+  require_depth_ok: true
+  require_time_ok: true
+  require_price_bounds_ok: true
+  require_data_freshness_ok: true
+
+logging:
+  format: jsonl
+  schema_version: "1.0"
+  log_every_signal: true
+  log_every_skip: true
+  log_every_order_attempt: true
+  log_orderbook_snapshot: true
+  redact_secrets: true
+  daily_rotation: true
+  log_file: "logs/dry_run_events.jsonl"
