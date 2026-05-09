@@ -1,0 +1,55 @@
+{
+  "snapshots": [
+    {
+      "market_ticker": "KXBTC-REPLAY-T95000",
+      "strike": 95000.0,
+      "expiry": "2099-01-01T00:07:00Z",
+      "minutes_to_expiry": 7.0,
+      "best_yes_bid": 46.0,
+      "best_yes_ask": 50.0,
+      "best_no_bid": 50.0,
+      "best_no_ask": 54.0,
+      "spread_cents": 4.0,
+      "depth_bid": 80.0,
+      "depth_ask": 80.0,
+      "book_timestamp": "2099-01-01T00:06:30Z",
+      "spot_price": 94921.0,
+      "p_raw": 0.72,
+      "side": "yes"
+    },
+    {
+      "market_ticker": "KXBTC-REPLAY-T95000",
+      "strike": 95000.0,
+      "expiry": "2099-01-01T00:07:00Z",
+      "minutes_to_expiry": 7.0,
+      "best_yes_bid": 44.0,
+      "best_yes_ask": 56.0,
+      "best_no_bid": 44.0,
+      "best_no_ask": 56.0,
+      "spread_cents": 12.0,
+      "depth_bid": 40.0,
+      "depth_ask": 40.0,
+      "book_timestamp": "2099-01-01T00:06:30Z",
+      "spot_price": 94850.0,
+      "p_raw": 0.65,
+      "side": "yes"
+    },
+    {
+      "market_ticker": "KXBTC-REPLAY-T95000",
+      "strike": 95000.0,
+      "expiry": "2099-01-01T00:07:00Z",
+      "minutes_to_expiry": 7.0,
+      "best_yes_bid": 47.0,
+      "best_yes_ask": 51.0,
+      "best_no_bid": 49.0,
+      "best_no_ask": 53.0,
+      "spread_cents": 4.0,
+      "depth_bid": 90.0,
+      "depth_ask": 85.0,
+      "book_timestamp": "2099-01-01T00:06:30Z",
+      "spot_price": 94780.0,
+      "p_raw": 0.5,
+      "side": "yes"
+    }
+  ]
+}
