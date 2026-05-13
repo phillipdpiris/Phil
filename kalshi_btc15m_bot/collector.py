@@ -17,6 +17,7 @@ def load_snapshot(path):
     raise ValueError(f"Unrecognised snapshot format in {path}")
 
 class SignalSourceError(Exception): pass
+class SnapshotTimestampInvalid(Exception): pass
 
 def generate_p_raw_from_scaffold(features, context, phase, yes_bid=50.0, no_bid=50.0):
     from kalshi_btc15m_bot.strategy.scorer import best_entry_decision
@@ -66,11 +67,19 @@ def get_candle_features():
     candles = coinbase.get_candles(cfg.coinbase_product, cfg.coinbase_granularity)[-cfg.coinbase_candles_count:]
     return build_feature_bundle(candles), build_recent_context_summary([])
 
-def _parse_book_ts_ms(book_timestamp, fallback_now_ms):
+def _parse_book_ts_ms(book_timestamp, fallback_now_ms, mode):
+    if book_timestamp is None:
+        if mode == "loop-smoke":
+            return int(fallback_now_ms - 500)
+        raise SnapshotTimestampInvalid("book_timestamp missing")
     try:
-        ts = book_timestamp.rstrip("Z") + "+00:00" if book_timestamp.endswith("Z") else book_timestamp
-        return int(datetime.fromisoformat(ts).timestamp() * 1000)
-    except: return fallback_now_ms - 500
+        raw = book_timestamp.rstrip("Z") + "+00:00" if book_timestamp.endswith("Z") else book_timestamp
+        ts = int(datetime.fromisoformat(raw).timestamp() * 1000)
+        return min(ts, int(fallback_now_ms - 500))
+    except (ValueError, AttributeError, TypeError):
+        if mode == "loop-smoke":
+            return int(fallback_now_ms - 500)
+        raise SnapshotTimestampInvalid(f"malformed book_timestamp: {book_timestamp!r}")
 
 class Collector:
     def __init__(self, mode, log_file, duration_minutes, poll_seconds=DEFAULT_POLL_SECONDS,
@@ -96,6 +105,8 @@ class Collector:
 
     def _make_signal_ctx(self, snapshot, p_raw, side, cycle_id):
         now_ms = time.time() * 1000.0
+        raw_book_timestamp = snapshot.get("book_timestamp")
+        book_timestamp_ms = _parse_book_ts_ms(raw_book_timestamp, now_ms, self.mode)
         return SignalContext(
             correlation_id=cycle_id, market_ticker=snapshot["market_ticker"],
             event_ticker=snapshot["market_ticker"].rsplit("-",1)[0], strike=snapshot.get("strike",95000.0),
@@ -105,8 +116,8 @@ class Collector:
             best_yes_bid=snapshot["best_yes_bid"], best_yes_ask=snapshot["best_yes_ask"],
             best_no_bid=snapshot["best_no_bid"], best_no_ask=snapshot["best_no_ask"],
             spread_cents=snapshot["spread_cents"], depth_bid=snapshot.get("depth_bid",50.0),
-            depth_ask=snapshot.get("depth_ask",50.0), book_timestamp=snapshot["book_timestamp"],
-            book_timestamp_ms=min(_parse_book_ts_ms(snapshot["book_timestamp"], now_ms), now_ms-500),
+            depth_ask=snapshot.get("depth_ask",50.0), book_timestamp=raw_book_timestamp or "",
+            book_timestamp_ms=book_timestamp_ms,
             signal_timestamp_ms=now_ms-1000, current_timestamp_ms=now_ms,
             p_raw=p_raw, limit_price_cents=snapshot.get("limit_price_cents",48.0), requested_count=5)
 
@@ -141,6 +152,10 @@ class Collector:
                     filled += 1; print(f"  [{cycle_id}] filled  order_id={result.get('order_id')}")
                 else:
                     skipped += 1; print(f"  [{cycle_id}] skipped reason={result.get('skip_reason','?')}")
+            except SnapshotTimestampInvalid as e:
+                skipped += 1
+                self.logger.log_skip(correlation_id=cycle_id, skip_reason="SNAPSHOT_TIMESTAMP_INVALID", block_reason=str(e))
+                print(f"  [{cycle_id}] skipped reason=SNAPSHOT_TIMESTAMP_INVALID")
             except SignalSourceError as e:
                 errors += 1; signal_sources["unavailable"] = signal_sources.get("unavailable", 0) + 1
                 self.logger.log_skip(correlation_id=cycle_id, skip_reason="SIGNAL_SOURCE_ERROR", block_reason=str(e))
