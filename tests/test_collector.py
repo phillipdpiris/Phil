@@ -2,7 +2,7 @@ import json, os, time
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 import pytest
-from kalshi_btc15m_bot.collector import Collector, SignalSourceError
+from kalshi_btc15m_bot.collector import Collector, SignalSourceError, SnapshotTimestampInvalid, _parse_book_ts_ms
 
 def read_events(log_file):
     with open(log_file) as f:
@@ -104,6 +104,29 @@ class TestSignalSourceError:
         summary = [e for e in events if e["event_type"]=="run_summary"]
         assert len(summary) == 1
         assert summary[0]["errors"] == 3
+
+class TestSnapshotTimestampInvalid:
+    def test_replay_mode_raises_on_malformed_book_timestamp(self):
+        with pytest.raises(SnapshotTimestampInvalid):
+            _parse_book_ts_ms("not-a-timestamp", 1_700_000_000_000, "replay")
+
+    def test_live_mode_raises_on_missing_book_timestamp(self):
+        with pytest.raises(SnapshotTimestampInvalid):
+            _parse_book_ts_ms(None, 1_700_000_000_000, "live")
+
+    def test_loop_smoke_mode_uses_fallback_for_malformed_book_timestamp(self):
+        assert _parse_book_ts_ms("not-a-timestamp", 1_700_000_000_000, "loop-smoke") == 1_699_999_999_500
+
+    def test_replay_cycle_skips_malformed_timestamp_without_signal(self, tmp_path):
+        bad_snapshot = [dict(SAMPLE_SNAPSHOT[0], book_timestamp="not-a-timestamp")]
+        c = make_collector(tmp_path, mode="replay", max_cycles=1, snapshots=bad_snapshot)
+        c.run()
+        events = read_events(list(tmp_path.glob("*.jsonl"))[0])
+        assert not [e for e in events if e["event_type"] == "signal_generated"]
+        assert any(e.get("skip_reason") == "SNAPSHOT_TIMESTAMP_INVALID" for e in events if e["event_type"] == "trade_skipped")
+        summary = next(e for e in events if e["event_type"] == "run_summary")
+        assert summary["skipped"] == 1
+        assert summary["errors"] == 0
 
 class TestRunSummary:
     def test_run_summary_counts_accurate(self, tmp_path):
