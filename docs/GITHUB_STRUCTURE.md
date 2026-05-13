@@ -1,7 +1,7 @@
 # GitHub Repo Structure & G/O Workflow Guide
 
 Repo: `phillipdpiris/Phil`  
-Codebase version: v11 (156/156 tests, SHA-256: `f5e662689a3ca25829fb1546ef21afe3d0135716b9fd992faca91c91bb22b2a6`)
+Codebase version: v11+timestamp-fail-closed (tests pending local/CI verification after commit `d7e85e4785ad392e189e7fbc1458e8c89e7294c6`)
 
 ---
 
@@ -22,7 +22,7 @@ Phil/
 │   ├── GITHUB_STRUCTURE.md          # THIS FILE — repo map + G/O workflow
 │   ├── RISK_AND_REVIEW_GUIDE.md     # Trading rules, risk controls, review checklist
 │   ├── SOURCE_NOTES.md              # Kalshi API assumptions (signing, orderbook shape, etc.)
-│   └── STARTER_AGENT_SETUP.md      # Handoff doc for a new coding agent
+│   └── STARTER_AGENT_SETUP.md       # Handoff doc for a new coding agent
 │
 ├── kalshi_btc15m_bot/               # Main Python package
 │   ├── __init__.py
@@ -39,7 +39,7 @@ Phil/
 │   │   ├── lifecycle_logger.py      # Phase 1 JSONL logger (p_raw_semantics='p_yes' on every event)
 │   │   ├── logger.py                # Simple JsonlLogger (market/signal/order/exit events)
 │   │   ├── replay.py                # Offline PnL replay from JSONL session logs
-│   │   └── reports.py              # Daily PnL, strategy attribution, late-exit giveback
+│   │   └── reports.py               # Daily PnL, strategy attribution, late-exit giveback
 │   │
 │   ├── clients/
 │   │   ├── coinbase_spot.py         # Coinbase REST: get_candles, get_last_trade
@@ -52,7 +52,7 @@ Phil/
 │   │   ├── guards.py                # Scaffold guards (spread_ok, depth_ok, time_ok, net_edge_ok)
 │   │   ├── order_mapper.py          # V2 payload builder with validation (OrderMappingError)
 │   │   ├── orders.py                # Raw order builders (build_limit_buy_yes, etc.)
-│   │   └── router.py               # Entry/exit routing (resting vs aggressive limit)
+│   │   └── router.py                # Entry/exit routing (resting vs aggressive limit)
 │   │
 │   ├── market/
 │   │   ├── clocks.py                # Phase detection from open/close times
@@ -74,17 +74,17 @@ Phil/
 │       ├── probability_adjuster.py  # Shrinkage (p_raw → p_shrunk), validation
 │       ├── recent_context.py        # Recent settled market context (outcome/continuation/reversal rates)
 │       ├── scorer.py                # Best entry decision: combine features → edge → side selection
-│       └── strategy_router.py      # Route decision to strategy name, check EV threshold
+│       └── strategy_router.py       # Route decision to strategy name, check EV threshold
 │
 ├── snapshots/                       # Replay snapshot files for collector dry-runs
 │   ├── sample_week2_snapshot.json
 │   ├── sample_week2_diverse_snapshot.json   # All guard regimes (spread, stale, time, EV)
 │   └── sample_week2_scorer_snapshot.json    # Deterministic scorer fixture (bearish NO signal)
 │
-├── tests/                           # 156 tests — all passing on v11
+├── tests/                           # pytest suite
 │   ├── test_cli.py
 │   ├── test_clocks.py
-│   ├── test_collector.py            # Loop-smoke, replay, stale-book, run_summary metadata
+│   ├── test_collector.py            # Loop-smoke, replay, stale-book, run_summary, timestamp invalid policy
 │   ├── test_exits_and_guards.py
 │   ├── test_fees.py
 │   ├── test_integration.py          # Full Phase 1 pipeline end-to-end
@@ -96,54 +96,65 @@ Phil/
 │   ├── test_scoring.py
 │   └── test_signature.py
 │
-└── conversation/                    # G/O exchange — mirrors Google Drive Conversation folder
+└── conversation/                    # Strict-active G/O exchange
     ├── .gitkeep
-    ├── YYYY-MM-DD_HH-MM_O_Description.md   # Active O response (posted by O after each cycle)
+    ├── YYYY-MM-DD_HH-MM_G_Description.md   # Current unprocessed G doc(s) only
+    ├── YYYY-MM-DD_HH-MM_O_Description.md   # Current active O response only
     └── read/
         ├── .gitkeep
-        └── YYYY-MM-DD_HH-MM_O_Description_read.md  # Archived after G reads (renamed + moved)
+        ├── YYYY-MM-DD_HH-MM_G_Description_read.md
+        └── YYYY-MM-DD_HH-MM_O_Description_read.md
 ```
 
 ---
 
 ## G/O Workflow on GitHub
 
-This mirrors the Google Drive conversation pattern exactly.
+GitHub is the canonical workspace for code and G/O Markdown handoffs.
 
 ### Naming conventions
 
-| Author | File name pattern | Location |
-|--------|-------------------|----------|
-| O (Claude) | `YYYY-MM-DD_HH-MM_O_Description.md` | `conversation/` |
-| G (reviewer) | Posts feedback directly in chat or uploads a doc | — |
-| Archived | `YYYY-MM-DD_HH-MM_O_Description_read.md` | `conversation/read/` |
+| Author | Active file name pattern | Active location | Archived pattern | Archive location |
+|--------|--------------------------|-----------------|------------------|------------------|
+| G (reviewer) | `YYYY-MM-DD_HH-MM_G_Description.md` | `conversation/` | `YYYY-MM-DD_HH-MM_G_Description_read.md` | `conversation/read/` |
+| O (coding agent) | `YYYY-MM-DD_HH-MM_O_Description.md` | `conversation/` | `YYYY-MM-DD_HH-MM_O_Description_read.md` | `conversation/read/` |
 
-Timestamps are PDT (UTC−7). Example: `2026-05-10_10-48_O_GitHubStructure_v11.md`
+Timestamps are PDT (UTC−7). Example: `2026-05-12_10-00_O_WorkflowCleanup_v11.md`
 
-### Response cycle (GitHub equivalent)
+### Strict-active `conversation/` convention — Option A
 
-1. **G sends feedback** in chat (or uploads a doc)
-2. **O reads it** fully
-3. **O renames the previous active O doc** — adds `_read` suffix in filename
-4. **O moves the renamed file** to `conversation/read/`
-5. **O fixes code / runs tests / verifies**
-6. **O posts new O doc** at `conversation/YYYY-MM-DD_HH-MM_O_Description.md`
-7. **O links to the new file** in chat immediately
-8. **O updates state** (README or state doc) if package changed
+`conversation/` must contain only:
+
+1. Current unprocessed G doc(s)
+2. Current active O response doc
+3. `.gitkeep`
+
+Once O has processed a G doc, both the processed G doc and the O response addressing it move to `conversation/read/` with `_read` suffix.
+
+### Response cycle
+
+1. G posts a Markdown handoff in `conversation/` using the G naming convention.
+2. O reads the G handoff fully.
+3. O implements code/doc changes and records commit SHAs.
+4. O creates a new active O Markdown response in `conversation/`.
+5. Processed G/O files are copied or moved into `conversation/read/` with `_read` suffix.
+6. Stale originals in `conversation/` are deleted manually when connector tooling cannot delete them.
+7. O links or names the new active O doc in chat immediately.
+8. O updates docs/README/state only if package behavior, workflow, or status changed.
 
 ### The `_read` rule (CRITICAL)
 
 Before moving any file to `conversation/read/`, always rename it with `_read` suffix first:
 
 ```
-2026-05-10_10-48_O_GitHubStructure_v11.md
-         ↓  (rename via new commit)
-2026-05-10_10-48_O_GitHubStructure_v11_read.md
+2026-05-12_10-00_O_WorkflowCleanup_v11.md
+         ↓  (rename via new path)
+2026-05-12_10-00_O_WorkflowCleanup_v11_read.md
          ↓  (move via new path in commit)
-conversation/read/2026-05-10_10-48_O_GitHubStructure_v11_read.md
+conversation/read/2026-05-12_10-00_O_WorkflowCleanup_v11_read.md
 ```
 
-On GitHub, "rename + move" = push a new file at the new path and delete the old one.
+On GitHub, "rename + move" = create the archived file at the new path and delete the old one. If the connector cannot delete, manual cleanup of the stale original is required.
 
 ---
 
@@ -154,8 +165,10 @@ On GitHub, "rename + move" = push a new file at the new path and delete the old 
 - `DryRunEnforcementError` raised if `dry_run=False`.
 - `load_config()` — never `BotConfig()` directly.
 - `KalshiRestClient.build(cfg)` — never `KalshiRestClient(cfg)` directly.
-- Scaffold files untouched: `main.py`, `config.py`, `fair_value.py`, `scorer.py`, `guards.py`.
+- Scaffold files untouched unless explicitly approved: `main.py`, `config.py`, `fair_value.py`, `scorer.py`, `guards.py`.
 - All guard regimes testable via replay snapshot `book_timestamp`.
+- Malformed or missing `book_timestamp` fails closed in replay/live mode with `SNAPSHOT_TIMESTAMP_INVALID`.
+- Loop-smoke mode may use synthetic fallback timestamps because snapshots are generated in-process.
 
 ---
 
@@ -165,7 +178,7 @@ On GitHub, "rename + move" = push a new file at the new path and delete the old 
 # Install
 python -m venv .venv && .venv/bin/pip install -r requirements.txt
 
-# Run all 156 tests
+# Run all tests
 .venv/bin/pytest
 
 # Loop-smoke (no API needed)
@@ -181,7 +194,7 @@ python -m kalshi_btc15m_bot.app --smoke
 
 ---
 
-## Current Status (v11)
+## Current Status (v11+timestamp-fail-closed)
 
 | Item | Status |
 |------|--------|
@@ -190,5 +203,8 @@ python -m kalshi_btc15m_bot.app --smoke
 | Week 2 replay (all regimes) | ACCEPTED |
 | Stale-book replay fidelity | ACCEPTED |
 | run_summary metadata | ACCEPTED |
+| Malformed timestamp fail-closed policy | IMPLEMENTED |
+| Timestamp regression tests | ADDED |
+| Local/CI pytest after latest patch | PENDING |
 | Live mode with API credentials | PENDING |
-| GitHub push | COMPLETE (70 files) |
+| Live trading | PROHIBITED |
