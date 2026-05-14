@@ -41,3 +41,48 @@ jobs:
               issue_number: context.issue.number,
               state: 'closed'
             });
+
+  update-file:
+    if: contains(github.event.issue.labels.*.name, 'update-file')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract path and content, then update
+        run: |
+          BODY=$(cat << 'ISSUE_BODY'
+          ${{ github.event.issue.body }}
+          ISSUE_BODY
+          )
+          FILE_PATH=$(echo "$BODY" | grep -oP '(?<=path: ).*' | head -1 | tr -d '\r')
+          # Extract content between ```content and ``` markers
+          CONTENT=$(echo "$BODY" | sed -n '/^```content$/,/^```$/{ /^```/d; p }')
+          mkdir -p "$(dirname "$FILE_PATH")"
+          echo "$CONTENT" > "$FILE_PATH"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "$FILE_PATH"
+          git commit -m "chore: update $FILE_PATH (issue #${{ github.event.issue.number }})"
+          git push
+
+      - name: Close issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `✅ Updated`
+            });
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              state: 'closed'
+            });
