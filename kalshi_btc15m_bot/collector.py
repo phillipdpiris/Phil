@@ -51,7 +51,8 @@ def get_live_market_snapshot():
         now = datetime.now(timezone.utc)
         remaining = (market.close_time - now).total_seconds()
         book = fetch_rest_orderbook_snapshot(rest, market.ticker)
-        return {"market_ticker": market.ticker, "strike": 0.0,
+        return {"market_ticker": market.ticker,
+                "strike": None,  # kxbtc15m is time-based — no price strike; null avoids misleading analytics
                 "expiry": market.close_time.isoformat(), "minutes_to_expiry": remaining/60.0,
                 "best_yes_bid": best_yes_bid(book) or 0.0, "best_yes_ask": best_yes_ask(book) or 0.0,
                 "best_no_bid": best_no_bid(book) or 0.0, "best_no_ask": best_no_ask(book) or 0.0,
@@ -86,7 +87,7 @@ class Collector:
         self.mode=mode; self.duration_minutes=duration_minutes; self.poll_seconds=poll_seconds
         self.max_cycles=max_cycles; self.snapshot_file=snapshot_file
         self.run_id=run_id or f"run-{uuid.uuid4().hex[:8]}"
-        date_str=datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        date_str=datetime.now(timezone.utc).strftime("%Y-%m-%d")  # UTC date
         if "YYYY-MM-DD" in log_file: log_file=log_file.replace("YYYY-MM-DD",date_str)
         elif not log_file.endswith(".jsonl"): log_file=log_file.rstrip("/")+f"/dry_run_events_{date_str}.jsonl"
         self.log_file=log_file
@@ -108,7 +109,8 @@ class Collector:
         book_timestamp_ms=_parse_book_ts_ms(raw_book_timestamp,now_ms,self.mode)
         return SignalContext(
             correlation_id=cycle_id,market_ticker=snapshot["market_ticker"],
-            event_ticker=snapshot["market_ticker"].rsplit("-",1)[0],strike=snapshot.get("strike",95000.0),
+            event_ticker=snapshot["market_ticker"].rsplit("-",1)[0],
+            strike=snapshot.get("strike") or 0.0,  # None for live time-based markets; 0.0 fallback for SignalContext
             expiry=snapshot["expiry"],side=side,minutes_to_expiry=snapshot["minutes_to_expiry"],
             spot_at_signal=snapshot.get("spot_price",95000.0),
             reference_source="stub_fixed_price" if self.mode!="live" else "coinbase_ticker",
