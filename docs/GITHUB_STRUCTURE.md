@@ -1,7 +1,7 @@
 # GitHub Repo Structure & G/O Workflow Guide
 
 Repo: `phillipdpiris/Phil`  
-Codebase version: v11+timestamp-fail-closed (tests pending local/CI verification after commit `d7e85e4785ad392e189e7fbc1458e8c89e7294c6`)
+Codebase version: v11 + live-mode fixes (live validation confirmed 2026-05-16)
 
 ---
 
@@ -96,6 +96,10 @@ Phil/
 │   ├── test_scoring.py
 │   └── test_signature.py
 │
+├── verification/                    # G audit artifacts and SHA lookups
+│   ├── last_sha.json                # Written by get-file-sha workflow — O reads this for file updates
+│   └── live_validation_*.jsonl      # Raw JSONL from live validation runs
+│
 └── conversation/                    # Strict-active G/O exchange
     ├── .gitkeep
     ├── YYYY-MM-DD_HH-MM_G_Description.md   # Current unprocessed G doc(s) only
@@ -138,7 +142,7 @@ Once O has processed a G doc, both the processed G doc and the O response addres
 3. O implements code/doc changes and records commit SHAs.
 4. O creates a new active O Markdown response in `conversation/`.
 5. Processed G/O files are copied or moved into `conversation/read/` with `_read` suffix.
-6. Stale originals in `conversation/` are deleted manually when connector tooling cannot delete them.
+6. Stale originals in `conversation/` are deleted via the `delete-file` workflow.
 7. O links or names the new active O doc in chat immediately.
 8. O updates docs/README/state only if package behavior, workflow, or status changed.
 
@@ -154,7 +158,25 @@ Before moving any file to `conversation/read/`, always rename it with `_read` su
 conversation/read/2026-05-12_10-00_O_WorkflowCleanup_v11_read.md
 ```
 
-On GitHub, "rename + move" = create the archived file at the new path and delete the old one. If the connector cannot delete, manual cleanup of the stale original is required.
+### G Document Convention — SHA Required
+
+When G's response references or approves changes to specific files, G must include the current blob SHA for each file. This allows O to update files directly without a separate SHA-fetch round trip.
+
+**Format in G docs:**
+
+```
+file: kalshi_btc15m_bot/collector.py
+sha: <blob SHA>
+```
+
+**How G gets a file's SHA:**
+
+Option 1 — Trigger a `get-file-sha` issue (label: `get-file-sha`, body: `path: <file_path>`), then read:
+`https://raw.githubusercontent.com/phillipdpiris/Phil/main/verification/last_sha.json`
+
+Option 2 — GitHub UI: navigate to the file → the SHA is the short commit hash shown next to the filename.
+
+This convention applies to all future G docs where file changes are discussed or approved.
 
 ---
 
@@ -190,11 +212,14 @@ python -m kalshi_btc15m_bot.collector --dry-run --market-source replay \
 
 # Phase 1 smoke test
 python -m kalshi_btc15m_bot.app --smoke
+
+# Live dry-run (requires .env with Kalshi credentials)
+python -m kalshi_btc15m_bot.collector --dry-run --market-source live --max-cycles 3
 ```
 
 ---
 
-## Current Status (v11+timestamp-fail-closed)
+## Current Status
 
 | Item | Status |
 |------|--------|
@@ -203,8 +228,11 @@ python -m kalshi_btc15m_bot.app --smoke
 | Week 2 replay (all regimes) | ACCEPTED |
 | Stale-book replay fidelity | ACCEPTED |
 | run_summary metadata | ACCEPTED |
-| Malformed timestamp fail-closed policy | IMPLEMENTED |
-| Timestamp regression tests | ADDED |
-| Local/CI pytest after latest patch | PENDING |
-| Live mode with API credentials | PENDING |
+| Malformed timestamp fail-closed | ACCEPTED |
+| Live API connection | VALIDATED |
+| Live orderbook fetch | VALIDATED |
+| Live signal pipeline end-to-end | VALIDATED |
+| dry_run enforcement in live mode | VALIDATED |
+| No live orders in live mode | VALIDATED |
+| Full 156-test suite | PASSING |
 | Live trading | PROHIBITED |
