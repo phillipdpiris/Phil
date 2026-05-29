@@ -1,0 +1,60 @@
+name: Build Photobooth APK
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'PhotoboothApp/**'
+  workflow_dispatch:   # manual trigger from Actions tab
+
+jobs:
+  build:
+    name: Build Debug APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      # Paste your google-services.json contents as a repo secret named GOOGLE_SERVICES_JSON
+      # GitHub repo → Settings → Secrets and variables → Actions → New repository secret
+      - name: Write google-services.json
+        run: echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > PhotoboothApp/app/google-services.json
+
+      - name: Make gradlew executable
+        working-directory: PhotoboothApp
+        run: chmod +x gradlew
+
+      - name: Build debug APK
+        working-directory: PhotoboothApp
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      # Download the APK from the Actions tab → click the run → Artifacts section
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: photobooth-debug-apk
+          path: PhotoboothApp/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+
+      - name: Build summary
+        if: success()
+        run: |
+          echo '## ✅ APK Build Successful' >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo 'Download the APK from the **Artifacts** section at the bottom of this page.' >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo '**Install on SM-X510 via USB:**' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo 'adb install app-debug.apk' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
