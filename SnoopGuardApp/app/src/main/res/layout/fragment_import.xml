@@ -34,6 +34,51 @@
         android:layout_marginTop="12dp"
         android:visibility="gone" />
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="20dp"
+        android:background="?android:attr/listDivider" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/backup_section"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/backupStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textSize="12sp"
+        android:alpha="0.8"
+        android:text="@string/backup_none" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/chooseBackupButton"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/backup_choose" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/backupNowButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="@string/backup_now" />
+    </LinearLayout>
+
     <TextView
         android:id="@+id/emptyText"
         android:layout_width="match_parent"

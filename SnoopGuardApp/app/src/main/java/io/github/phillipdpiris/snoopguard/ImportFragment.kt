@@ -28,6 +28,7 @@ class ImportFragment : Fragment() {
 
     private lateinit var keyManager: KeyManager
     private lateinit var importStore: ImportStore
+    private lateinit var backupManager: BackupManager
     private val adapter = CapturesAdapter(emptyList(), R.string.import_locked)
     private val ioExecutor = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
@@ -35,6 +36,16 @@ class ImportFragment : Fragment() {
     private val pickMedia = registerForActivityResult(
         ActivityResultContracts.PickMultipleVisualMedia(20),
     ) { uris -> if (uris.isNotEmpty()) encryptAll(uris) }
+
+    private val chooseBackup = registerForActivityResult(
+        ActivityResultContracts.OpenDocumentTree(),
+    ) { uri ->
+        if (uri != null) {
+            backupManager.persistTree(uri)
+            renderBackupStatus()
+            toast(getString(R.string.backup_folder_set))
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,6 +60,7 @@ class ImportFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         keyManager = KeyManager(requireContext())
         importStore = ImportStore(requireContext())
+        backupManager = BackupManager(requireContext().applicationContext)
 
         binding.importsList.layoutManager = LinearLayoutManager(requireContext())
         binding.importsList.adapter = adapter
@@ -62,6 +74,33 @@ class ImportFragment : Fragment() {
                 )
             }
         }
+
+        binding.chooseBackupButton.setOnClickListener { chooseBackup.launch(null) }
+        binding.backupNowButton.setOnClickListener { backupNow() }
+        renderBackupStatus()
+    }
+
+    private fun backupNow() {
+        if (!backupManager.isConfigured()) {
+            toast(getString(R.string.backup_not_configured))
+            return
+        }
+        ioExecutor.execute {
+            val n = try {
+                backupManager.exportAll()
+            } catch (t: Throwable) {
+                -1
+            }
+            main.post {
+                if (!isAdded) return@post
+                toast(if (n >= 0) getString(R.string.backup_done, n) else getString(R.string.vault_open_failed))
+            }
+        }
+    }
+
+    private fun renderBackupStatus() {
+        val b = _binding ?: return
+        b.backupStatus.setText(if (backupManager.isConfigured()) R.string.backup_folder_set else R.string.backup_none)
     }
 
     override fun onResume() {
@@ -85,6 +124,13 @@ class ImportFragment : Fragment() {
                     ok++
                 } catch (t: Throwable) {
                     target.delete()
+                }
+            }
+            // Push the new encrypted files off-device if a backup folder is set.
+            if (backupManager.isConfigured()) {
+                try {
+                    backupManager.exportAll()
+                } catch (_: Throwable) {
                 }
             }
             main.post {

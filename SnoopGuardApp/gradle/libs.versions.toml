@@ -10,6 +10,7 @@ lifecycle = "2.8.7"
 camerax = "1.4.2"
 mlkitFace = "16.1.7"
 coroutines = "1.10.2"
+documentfile = "1.0.1"
 tink = "1.18.0"
 junit = "4.13.2"
 
@@ -26,6 +27,7 @@ androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycl
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 mlkit-face-detection = { group = "com.google.mlkit", name = "face-detection", version.ref = "mlkitFace" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
 tink-android = { group = "com.google.crypto.tink", name = "tink-android", version.ref = "tink" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 

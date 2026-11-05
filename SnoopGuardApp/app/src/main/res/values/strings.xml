@@ -35,6 +35,14 @@
     <string name="importing">Encrypting %1$d item(s)…</string>
     <string name="imported_done">Encrypted %1$d item(s).</string>
 
+    <string name="backup_section">Off-device backup (captures + imports)</string>
+    <string name="backup_none">No backup folder chosen. Pick a folder a cloud app syncs — only encrypted files are copied there.</string>
+    <string name="backup_choose">Choose folder</string>
+    <string name="backup_now">Back up now</string>
+    <string name="backup_folder_set">Backup folder set. New encrypted files copy here.</string>
+    <string name="backup_done">Backed up %1$d new file(s).</string>
+    <string name="backup_not_configured">Choose a backup folder first.</string>
+
     <string name="vault_title">Vault</string>
     <string name="vault_explain">Enter your passphrase to decrypt and view captures and imports on this device. The passphrase is used in memory only and is never stored.</string>
     <string name="vault_passphrase_hint">Passphrase</string>

@@ -16,6 +16,8 @@ import io.github.phillipdpiris.snoopguard.crypto.KeyManager
 import java.io.File
 import java.util.concurrent.Executors
 
+// BackupManager is in the same package; no import needed.
+
 /**
  * Foreground, camera-type service. While armed it listens for the screen turning
  * on (ACTION_SCREEN_ON) and for unlock (ACTION_USER_PRESENT) and captures a
@@ -123,6 +125,16 @@ class WatchService : LifecycleService() {
                     }
                 }
                 store.appendEvent("capture_saved\t${target.name}")
+                // Push the new encrypted capture off-device promptly, so a
+                // snooper who deletes it on the phone doesn't erase the evidence.
+                val backup = BackupManager(applicationContext)
+                if (backup.isConfigured()) {
+                    try {
+                        backup.exportAll()
+                    } catch (t: Throwable) {
+                        store.appendEvent("backup_failed\t${t.message}")
+                    }
+                }
             } catch (t: Throwable) {
                 target.delete()
                 store.appendEvent("capture_encrypt_failed\t${t.message}")
