@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.mlkit.face.detection)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.tink.android)
 
     testImplementation(libs.junit)
 }
