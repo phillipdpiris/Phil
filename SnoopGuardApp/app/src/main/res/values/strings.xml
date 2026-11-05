@@ -22,6 +22,30 @@
 
     <string name="capture_locked">Encrypted capture</string>
 
+    <string name="tab_watch">Watch</string>
+    <string name="tab_import">Import</string>
+    <string name="tab_vault">Vault</string>
+
+    <string name="import_title">Encrypt your own media</string>
+    <string name="import_explain">Pick photos or videos to encrypt into your vault with the same key as captures. The originals are read, encrypted, and never stored in the clear by this app.</string>
+    <string name="import_pick">Pick photos or videos</string>
+    <string name="no_imports">Nothing imported yet.</string>
+    <string name="import_locked">Encrypted item</string>
+    <string name="import_need_key">Create your encryption key first (Watch tab → Arm).</string>
+    <string name="importing">Encrypting %1$d item(s)…</string>
+    <string name="imported_done">Encrypted %1$d item(s).</string>
+
+    <string name="vault_title">Vault</string>
+    <string name="vault_explain">Enter your passphrase to decrypt and view captures and imports on this device. The passphrase is used in memory only and is never stored.</string>
+    <string name="vault_passphrase_hint">Passphrase</string>
+    <string name="vault_unlock">Unlock</string>
+    <string name="vault_wrong_passphrase">Wrong passphrase.</string>
+    <string name="vault_no_key">No encryption key yet. Set one up on the Watch tab.</string>
+    <string name="vault_empty">Nothing in the vault yet.</string>
+    <string name="vault_open_failed">Could not open this item.</string>
+    <string name="vault_unlocked_hint">Tap an item to decrypt and open it.</string>
+    <string name="vault_item">Encrypted item</string>
+
     <string name="setup_title">Set up encryption</string>
     <string name="setup_explain">SnoopGuard encrypts every capture to a key that lives only on this device as a public (lock-only) half. To view captures you enter the passphrase you choose here, which unlocks the private half in memory. The phone itself can never decrypt a capture.</string>
     <string name="setup_warning">Save the exported key file and remember your passphrase. You need BOTH to view captures. If you lose either, encrypted captures cannot be recovered — that is the point.</string>

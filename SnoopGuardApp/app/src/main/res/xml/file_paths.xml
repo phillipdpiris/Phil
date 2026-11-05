@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Decrypted media is written here only while the Vault tab is open, and
+         cleared when it closes. Shared read-only with the system viewer. -->
+    <cache-path name="vault_open" path="vault_open/" />
+</paths>

@@ -9,8 +9,16 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import java.io.File
 
-class CapturesAdapter(private var items: List<File>) :
-    RecyclerView.Adapter<CapturesAdapter.VH>() {
+/**
+ * Lists encrypted items (captures or imports). It never decodes the files —
+ * they are ciphertext — so it shows a lock, the time, and an optional label.
+ * An optional click handler lets the Vault tab open (decrypt) an item.
+ */
+class CapturesAdapter(
+    private var items: List<File>,
+    private val labelResId: Int = R.string.capture_locked,
+    private val onClick: ((File) -> Unit)? = null,
+) : RecyclerView.Adapter<CapturesAdapter.VH>() {
 
     class VH(view: View) : RecyclerView.ViewHolder(view) {
         val thumb: ImageView = view.findViewById(R.id.thumb)
@@ -30,11 +38,13 @@ class CapturesAdapter(private var items: List<File>) :
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         val file = items[position]
-        // Captures are encrypted (.sgc): there is nothing to decode here. Show a
-        // lock and the time; decryption happens in the passphrase-gated viewer.
         holder.thumb.setImageResource(R.drawable.ic_lock)
         val when_ = DateFormat.format("MMM d, h:mm:ss a", file.lastModified())
-        holder.caption.text = holder.itemView.context.getString(R.string.capture_locked) + "  •  " + when_
+        val label = holder.itemView.context.getString(labelResId)
+        holder.caption.text = "$label  •  $when_"
+        onClick?.let { handler ->
+            holder.itemView.setOnClickListener { handler(file) }
+        }
     }
 
     override fun getItemCount(): Int = items.size
