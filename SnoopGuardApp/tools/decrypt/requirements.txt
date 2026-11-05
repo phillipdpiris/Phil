@@ -1,0 +1,4 @@
+# SnoopGuard laptop decryptor dependencies.
+# Validated with these versions; newer should work (Tink keeps wire compatibility).
+tink>=1.16.1
+cryptography>=43.0.0
