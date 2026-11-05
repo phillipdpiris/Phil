@@ -11,11 +11,20 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
+import io.github.phillipdpiris.snoopguard.crypto.FileCrypto
+import io.github.phillipdpiris.snoopguard.crypto.KeyManager
+import java.io.File
+import java.util.concurrent.Executors
 
 /**
  * Foreground, camera-type service. While armed it listens for the screen turning
  * on (ACTION_SCREEN_ON) and for unlock (ACTION_USER_PRESENT) and captures a
  * front-camera selfie on each, unless in log-only (silent) mode.
+ *
+ * Each selfie is encrypted to the public key before it touches persistent
+ * storage: the camera writes a transient JPEG to the cache, the face check runs
+ * on it, and it is encrypted to a `.sgc` file and the plaintext deleted. The
+ * service never holds anything that could decrypt a capture.
  *
  * It is a [LifecycleService] so CameraX can bind to its lifecycle.
  */
@@ -23,8 +32,11 @@ class WatchService : LifecycleService() {
 
     private lateinit var store: CaptureStore
     private lateinit var armState: ArmState
+    private lateinit var keyManager: KeyManager
     private var capturer: SelfieCapturer? = null
     private var faceGate: FaceGate? = null
+    private var publicKeyset: ByteArray? = null
+    private val ioExecutor = Executors.newSingleThreadExecutor()
 
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -39,6 +51,7 @@ class WatchService : LifecycleService() {
         super.onCreate()
         store = CaptureStore(this)
         armState = ArmState(this)
+        keyManager = KeyManager(this)
         registerReceiver(
             screenReceiver,
             IntentFilter().apply {
@@ -53,8 +66,16 @@ class WatchService : LifecycleService() {
         startForegroundSafely()
         // Idempotent: a START_STICKY redelivery must not bind the camera twice.
         if (!armState.silent && capturer == null) {
-            faceGate = FaceGate()
-            capturer = SelfieCapturer(this, this).also { it.start() }
+            if (keyManager.isSetup()) {
+                publicKeyset = keyManager.publicKeyset()
+                faceGate = FaceGate()
+                capturer = SelfieCapturer(this, this).also { it.start() }
+            } else {
+                // Armed (e.g. from the Quick Settings tile) before a key exists:
+                // we can log unlocks but must not capture, since there is no key
+                // to encrypt to. The user finishes setup by opening the app.
+                store.appendEvent("armed_without_key\tcapture_disabled")
+            }
         }
         return START_STICKY
     }
@@ -64,22 +85,51 @@ class WatchService : LifecycleService() {
         store.appendEvent("trigger\t$reason")
         if (armState.silent) return
 
-        val cap = capturer ?: return
-        val target = store.newCaptureFile(System.currentTimeMillis())
-        cap.capture(target) { ok ->
+        val cap = capturer
+        val pub = publicKeyset
+        if (cap == null || pub == null) {
+            store.appendEvent("capture_skipped_no_key\t$reason")
+            return
+        }
+
+        val ts = System.currentTimeMillis()
+        val tmp = store.newTempJpeg(ts)
+        cap.capture(tmp) { ok ->
             if (!ok) {
                 store.appendEvent("capture_failed\t$reason")
+                tmp.delete()
                 return@capture
             }
-            // Keep only frames that actually contain a face.
-            faceGate?.hasFace(this, target) { face ->
-                if (face) {
-                    store.appendEvent("capture_saved\t${target.name}")
-                } else {
-                    target.delete()
+            // Keep only frames that actually contain a face, then encrypt.
+            faceGate?.hasFace(this, tmp) { face ->
+                if (!face) {
+                    tmp.delete()
                     store.appendEvent("capture_discarded_no_face\t$reason")
+                } else {
+                    encryptAndStore(tmp, ts, reason, pub)
                 }
-            } ?: store.appendEvent("capture_saved\t${target.name}")
+            } ?: encryptAndStore(tmp, ts, reason, pub)
+        }
+    }
+
+    /** Encrypts the transient JPEG to a `.sgc` file off the main thread, then deletes it. */
+    private fun encryptAndStore(tmp: File, ts: Long, reason: String, pub: ByteArray) {
+        ioExecutor.execute {
+            val target = store.newCaptureFile(ts)
+            try {
+                tmp.inputStream().use { input ->
+                    target.outputStream().use { out ->
+                        FileCrypto.encrypt(pub, input, out)
+                    }
+                }
+                store.appendEvent("capture_saved\t${target.name}")
+            } catch (t: Throwable) {
+                target.delete()
+                store.appendEvent("capture_encrypt_failed\t${t.message}")
+                Log.w("SnoopGuard", "encrypt failed: ${t.message}")
+            } finally {
+                tmp.delete()
+            }
         }
     }
 
@@ -107,6 +157,7 @@ class WatchService : LifecycleService() {
         }
         capturer?.stop()
         faceGate?.close()
+        ioExecutor.shutdown()
         super.onDestroy()
     }
 

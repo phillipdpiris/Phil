@@ -6,22 +6,32 @@ import java.io.File
 /**
  * Stores captures and the unlock log in the app's private internal storage.
  *
+ * Captures are written as encrypted `.sgc` files (see
+ * [io.github.phillipdpiris.snoopguard.crypto.FileCrypto]); the plaintext JPEG
+ * exists only transiently in [tmpDir] while the camera writes it and the face
+ * check runs, and is deleted immediately after encryption.
+ *
  * NOTE (threat model): a snooper holding the unlocked phone could open this app
- * and delete these files, or uninstall the app. A real deployment should push each
- * capture off-device immediately (the owner's email or private cloud) and gate
- * disarm/history behind a separate app lock. Those are deliberately left as
- * follow-ups; see README.
+ * and delete these files, or uninstall the app. Because the files are encrypted
+ * to a public key, they can't read them — but they could still delete them. The
+ * off-device backup (follow-up) copies each `.sgc` out so deletion here is not
+ * the last word.
  */
 class CaptureStore(context: Context) {
 
     private val dir = File(context.filesDir, "captures").apply { mkdirs() }
+    private val tmpDir = File(context.cacheDir, "cap_tmp").apply { mkdirs() }
     private val logFile = File(context.filesDir, "events.log")
 
-    fun newCaptureFile(timestampMs: Long): File = File(dir, "capture_$timestampMs.jpg")
+    /** Transient plaintext target the camera writes to, before encryption. */
+    fun newTempJpeg(timestampMs: Long): File = File(tmpDir, "tmp_$timestampMs.jpg")
 
-    /** Captures, newest first. */
+    /** Encrypted capture target. */
+    fun newCaptureFile(timestampMs: Long): File = File(dir, "capture_$timestampMs.sgc")
+
+    /** Encrypted captures, newest first. */
     fun listCaptures(): List<File> =
-        dir.listFiles { f -> f.extension == "jpg" }
+        dir.listFiles { f -> f.extension == "sgc" }
             ?.sortedByDescending { it.lastModified() }
             ?: emptyList()
 

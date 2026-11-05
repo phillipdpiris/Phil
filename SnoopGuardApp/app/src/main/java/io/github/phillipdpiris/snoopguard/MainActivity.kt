@@ -1,6 +1,7 @@
 package io.github.phillipdpiris.snoopguard
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -9,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import io.github.phillipdpiris.snoopguard.crypto.KeyManager
 import io.github.phillipdpiris.snoopguard.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -16,7 +18,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var armState: ArmState
     private lateinit var store: CaptureStore
+    private lateinit var keyManager: KeyManager
     private val adapter = CapturesAdapter(emptyList())
+
+    private val setupLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        if (result.resultCode == RESULT_OK) requestAndArm()
+    }
 
     private val requestPerms = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
@@ -36,6 +45,7 @@ class MainActivity : AppCompatActivity() {
 
         armState = ArmState(this)
         store = CaptureStore(this)
+        keyManager = KeyManager(this)
 
         binding.capturesList.layoutManager = LinearLayoutManager(this)
         binding.capturesList.adapter = adapter
@@ -51,7 +61,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.armButton.setOnClickListener {
-            if (armState.armed) disarm() else requestAndArm()
+            when {
+                armState.armed -> disarm()
+                !keyManager.isSetup() -> setupLauncher.launch(Intent(this, SetupActivity::class.java))
+                else -> requestAndArm()
+            }
         }
     }
 

@@ -1,6 +1,5 @@
 package io.github.phillipdpiris.snoopguard
 
-import android.graphics.BitmapFactory
 import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
@@ -31,11 +30,11 @@ class CapturesAdapter(private var items: List<File>) :
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         val file = items[position]
-        // Downsample thumbnails so the list does not load full-res JPEGs.
-        val opts = BitmapFactory.Options().apply { inSampleSize = 8 }
-        holder.thumb.setImageBitmap(BitmapFactory.decodeFile(file.absolutePath, opts))
+        // Captures are encrypted (.sgc): there is nothing to decode here. Show a
+        // lock and the time; decryption happens in the passphrase-gated viewer.
+        holder.thumb.setImageResource(R.drawable.ic_lock)
         val when_ = DateFormat.format("MMM d, h:mm:ss a", file.lastModified())
-        holder.caption.text = when_
+        holder.caption.text = holder.itemView.context.getString(R.string.capture_locked) + "  •  " + when_
     }
 
     override fun getItemCount(): Int = items.size

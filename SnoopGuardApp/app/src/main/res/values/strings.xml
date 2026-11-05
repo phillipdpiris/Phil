@@ -19,4 +19,18 @@
     <string name="no_captures">No captures yet.</string>
     <string name="green_dot_notice">Android shows a camera indicator (green dot) briefly on every capture. This cannot be hidden, and is by design.</string>
     <string name="silent_mode">Log-only mode (no camera)</string>
+
+    <string name="capture_locked">Encrypted capture</string>
+
+    <string name="setup_title">Set up encryption</string>
+    <string name="setup_explain">SnoopGuard encrypts every capture to a key that lives only on this device as a public (lock-only) half. To view captures you enter the passphrase you choose here, which unlocks the private half in memory. The phone itself can never decrypt a capture.</string>
+    <string name="setup_warning">Save the exported key file and remember your passphrase. You need BOTH to view captures. If you lose either, encrypted captures cannot be recovered — that is the point.</string>
+    <string name="passphrase_hint">Passphrase (at least 8 characters)</string>
+    <string name="passphrase_confirm_hint">Confirm passphrase</string>
+    <string name="create_key">Create encryption key</string>
+    <string name="passphrase_too_short">Passphrase must be at least 8 characters.</string>
+    <string name="passphrase_mismatch">Passphrases do not match.</string>
+    <string name="key_create_failed">Could not create the key. Try again.</string>
+    <string name="key_exported">Key file saved. Keep it somewhere safe.</string>
+    <string name="key_export_failed">Could not save the key file.</string>
 </resources>
