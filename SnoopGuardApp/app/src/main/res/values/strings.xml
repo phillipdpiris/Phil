@@ -1,0 +1,68 @@
+<resources>
+    <string name="app_name">SnoopGuard</string>
+    <string name="tile_label">SnoopGuard</string>
+
+    <string name="status_armed">Armed — watching for unlocks</string>
+    <string name="status_disarmed">Disarmed</string>
+    <string name="arm">Arm</string>
+    <string name="disarm">Disarm</string>
+
+    <string name="notif_channel_name">SnoopGuard watch</string>
+    <string name="notif_channel_desc">Shows while SnoopGuard is armed. Android requires this notice while the camera service runs.</string>
+    <string name="notif_title">SnoopGuard is armed</string>
+    <string name="notif_text">A selfie is captured each time the phone is unlocked.</string>
+
+    <string name="perm_camera_needed">Camera permission is required to capture selfies.</string>
+    <string name="perm_notif_needed">Notification permission is needed for the required running notice.</string>
+
+    <string name="captures_title">Captures</string>
+    <string name="no_captures">No captures yet.</string>
+    <string name="green_dot_notice">Android shows a camera indicator (green dot) briefly on every capture. This cannot be hidden, and is by design.</string>
+    <string name="silent_mode">Log-only mode (no camera)</string>
+
+    <string name="capture_locked">Encrypted capture</string>
+
+    <string name="tab_watch">Watch</string>
+    <string name="tab_import">Import</string>
+    <string name="tab_vault">Vault</string>
+
+    <string name="import_title">Encrypt your own media</string>
+    <string name="import_explain">Pick photos or videos to encrypt into your vault with the same key as captures. The originals are read, encrypted, and never stored in the clear by this app.</string>
+    <string name="import_pick">Pick photos or videos</string>
+    <string name="no_imports">Nothing imported yet.</string>
+    <string name="import_locked">Encrypted item</string>
+    <string name="import_need_key">Create your encryption key first (Watch tab → Arm).</string>
+    <string name="importing">Encrypting %1$d item(s)…</string>
+    <string name="imported_done">Encrypted %1$d item(s).</string>
+
+    <string name="backup_section">Off-device backup (captures + imports)</string>
+    <string name="backup_none">No backup folder chosen. Pick a folder a cloud app syncs — only encrypted files are copied there.</string>
+    <string name="backup_choose">Choose folder</string>
+    <string name="backup_now">Back up now</string>
+    <string name="backup_folder_set">Backup folder set. New encrypted files copy here.</string>
+    <string name="backup_done">Backed up %1$d new file(s).</string>
+    <string name="backup_not_configured">Choose a backup folder first.</string>
+
+    <string name="vault_title">Vault</string>
+    <string name="vault_explain">Enter your passphrase to decrypt and view captures and imports on this device. The passphrase is used in memory only and is never stored.</string>
+    <string name="vault_passphrase_hint">Passphrase</string>
+    <string name="vault_unlock">Unlock</string>
+    <string name="vault_wrong_passphrase">Wrong passphrase.</string>
+    <string name="vault_no_key">No encryption key yet. Set one up on the Watch tab.</string>
+    <string name="vault_empty">Nothing in the vault yet.</string>
+    <string name="vault_open_failed">Could not open this item.</string>
+    <string name="vault_unlocked_hint">Tap an item to decrypt and open it.</string>
+    <string name="vault_item">Encrypted item</string>
+
+    <string name="setup_title">Set up encryption</string>
+    <string name="setup_explain">SnoopGuard encrypts every capture to a key that lives only on this device as a public (lock-only) half. To view captures you enter the passphrase you choose here, which unlocks the private half in memory. The phone itself can never decrypt a capture.</string>
+    <string name="setup_warning">Save the exported key file and remember your passphrase. You need BOTH to view captures. If you lose either, encrypted captures cannot be recovered — that is the point.</string>
+    <string name="passphrase_hint">Passphrase (at least 8 characters)</string>
+    <string name="passphrase_confirm_hint">Confirm passphrase</string>
+    <string name="create_key">Create encryption key</string>
+    <string name="passphrase_too_short">Passphrase must be at least 8 characters.</string>
+    <string name="passphrase_mismatch">Passphrases do not match.</string>
+    <string name="key_create_failed">Could not create the key. Try again.</string>
+    <string name="key_exported">Key file saved. Keep it somewhere safe.</string>
+    <string name="key_export_failed">Could not save the key file.</string>
+</resources>
