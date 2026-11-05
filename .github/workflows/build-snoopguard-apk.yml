@@ -29,6 +29,12 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # The action's default package list includes the obsolete "tools"
+          # package, which Google removed from the SDK repo (sdkmanager then
+          # fails with "Failed to find package 'tools'"). List only current
+          # packages explicitly.
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
 
       - name: Make gradlew executable
         working-directory: SnoopGuardApp
