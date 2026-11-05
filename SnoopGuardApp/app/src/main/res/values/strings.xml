@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">SnoopGuard</string>
+    <string name="tile_label">SnoopGuard</string>
+
+    <string name="status_armed">Armed — watching for unlocks</string>
+    <string name="status_disarmed">Disarmed</string>
+    <string name="arm">Arm</string>
+    <string name="disarm">Disarm</string>
+
+    <string name="notif_channel_name">SnoopGuard watch</string>
+    <string name="notif_channel_desc">Shows while SnoopGuard is armed. Android requires this notice while the camera service runs.</string>
+    <string name="notif_title">SnoopGuard is armed</string>
+    <string name="notif_text">A selfie is captured each time the phone is unlocked.</string>
+
+    <string name="perm_camera_needed">Camera permission is required to capture selfies.</string>
+    <string name="perm_notif_needed">Notification permission is needed for the required running notice.</string>
+
+    <string name="captures_title">Captures</string>
+    <string name="no_captures">No captures yet.</string>
+    <string name="green_dot_notice">Android shows a camera indicator (green dot) briefly on every capture. This cannot be hidden, and is by design.</string>
+    <string name="silent_mode">Log-only mode (no camera)</string>
+</resources>
