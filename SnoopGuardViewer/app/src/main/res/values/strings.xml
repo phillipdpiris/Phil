@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">SnoopGuard Viewer</string>
+    <string name="intro">Decrypt and view SnoopGuard captures and imports on this device. The private key is unwrapped in memory only and never stored here.</string>
+
+    <string name="load_key">Load key file (.sgk)</string>
+    <string name="key_none">No key loaded.</string>
+    <string name="key_loaded">Key loaded.</string>
+    <string name="key_load_failed">Could not read that key file.</string>
+
+    <string name="choose_folder">Choose vault folder</string>
+    <string name="folder_none">No folder chosen. Point this at the synced folder that holds the .sgc files.</string>
+    <string name="folder_set">Vault folder set.</string>
+
+    <string name="passphrase_hint">Passphrase</string>
+    <string name="unlock">Unlock &amp; list</string>
+    <string name="need_key">Load the key file first.</string>
+    <string name="need_folder">Choose the vault folder first.</string>
+    <string name="wrong_passphrase">Wrong passphrase.</string>
+    <string name="vault_empty">No encrypted items found in that folder.</string>
+    <string name="unlocked_hint">Tap an item to decrypt and open it.</string>
+    <string name="entry_item">Encrypted item</string>
+    <string name="open_failed">Could not open this item.</string>
+</resources>
